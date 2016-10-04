@@ -17,14 +17,27 @@ var path = require('path');
 
 var storage;
 var pathToMessages = path.join(__dirname, './messages.json');
-fs.readFile(pathToMessages, function(err, data) {
-  // console.log('data',data.toString());
-  if (err) {
-   // TODO FIXME
-  } else {
-    storage = JSON.parse(data.toString());
-  }
+// fs.readFile(pathToMessages, function(err, data) {
+//   // console.log('data',data.toString());
+//   if (err) {
+//    // TODO FIXME
+//   } else {
+//     storage = JSON.parse(data.toString());
+//   }
+// });
+
+// create new read stream
+messagesData = '';
+var messageReadStream = fs.createReadStream(pathToMessages);
+// on new data, append the data
+messageReadStream.on('data', function (chunk) {
+  messagesData += chunk;
 });
+// on end, process the data
+messageReadStream.on('end', function (chunk) {
+  storage = JSON.parse(messagesData.toString());
+});
+
 
 
 
@@ -113,7 +126,10 @@ var requestHandler = function(request, response) {
           newMessage.objectId = Math.floor(Math.random() * 1e6).toString();
           // If so, push it onto the storage.results array
           storage.results.push(newMessage);
-          fs.writeFile(pathToMessages, JSON.stringify(storage));
+          // fs.writeFile(pathToMessages, JSON.stringify(storage));
+          var messageWriteStream = fs.createWriteStream(pathToMessages);
+          messageWriteStream.write(JSON.stringify(storage));
+          messageWriteStream.end();
         } catch (e) {
         }
 
