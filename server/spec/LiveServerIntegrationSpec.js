@@ -73,5 +73,89 @@ describe('server', function() {
     });
   });
 
+  it('should remove data upon DELETE request', function (done) {
+    var requestParams = {method: 'POST',
+      uri: 'http://127.0.0.1:3000/classes/messages',
+      json: {
+        username: 'Jono',
+        message: 'Do my bidding!'}
+    };
 
+    // POST
+    request(requestParams, function(error, response, body) {
+
+      // GET
+      request('http://127.0.0.1:3000/classes/messages', function(error, response, body) {
+        var messages = JSON.parse(body).results;
+        var messageId = messages[0].id;
+
+        var deleteParams = {method: 'DELETE',
+          uri: 'http://127.0.0.1:3000/classes/messages',
+          json: messageId
+        };
+
+        // DELETE
+        request(deleteParams, function(error, response, body) {
+
+          // GET
+          request('http://127.0.0.1:3000/classes/messages', function(error, response, body) {
+            var messages = JSON.parse(body).results;
+            for (var i = 0; i < messages.length; i++) {
+              expect(messages[i].id).to.not.equal(messageId);
+            }
+            done();
+          });
+        });
+      });
+    });
+  });
+
+  it('should remove data upon DELETE request', function (done) {
+    var requestParams = {method: 'POST',
+      uri: 'http://127.0.0.1:3000/classes/messages',
+      json: {
+        username: 'Jono',
+        message: 'Do my bidding!'}
+    };
+
+    // POST
+    request(requestParams, function(error, response, body) {
+
+      // GET
+      request('http://127.0.0.1:3000/classes/messages', function(error, response, body) {
+        var messages = JSON.parse(body).results;
+        var messageCount = messages.length;
+
+        var deleteParams = {method: 'DELETE',
+          uri: 'http://127.0.0.1:3000/classes/messages',
+          json: 'a' // An id that isn't in use
+        };
+
+        // DELETE
+        request(deleteParams, function(error, response, body) {
+
+          // GET
+          request('http://127.0.0.1:3000/classes/messages', function(error, response, body) {
+            var messages = JSON.parse(body).results;
+            expect(messages.length).to.equal(messageCount);
+            done();
+          });
+        });
+      });
+    });
+  });
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+

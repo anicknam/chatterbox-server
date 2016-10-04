@@ -11,6 +11,7 @@ this file and include it in basic-server.js so that it actually works.
 *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html.
 
 **************************************************************/
+var crypto = require('crypto');
 
 var storage = {
   results: []
@@ -62,10 +63,12 @@ var requestHandler = function(request, response) {
 
       request.on('data', function (data) {
         var body = data;
-
+   
         try { 
           // JSON.parse(body.toString());
-          storage.results.push(JSON.parse(body.toString()));
+          var newMessage = JSON.parse(body.toString());
+          newMessage.id = Math.floor(Math.random() * 1e6).toString();
+          storage.results.push(newMessage);
           // If so, push it onto the storage.results array
         } catch (e) {
         }
@@ -79,6 +82,20 @@ var requestHandler = function(request, response) {
       // TODO: proper content-type
       headers['Content-Type'] = 'application/json';
       response.writeHead(statusCode, headers);
+      response.end('success');
+    } else if (request.method === 'DELETE') {
+      request.on('data', function (data) {
+        var body = JSON.parse(data.toString());
+        var indexToDelete;
+        storage.results.forEach(function(item, index) {
+          if (item.id === body) {
+            indexToDelete = index;
+          }
+        });
+        if (typeof indexToDelete === 'number') {
+          storage.results.splice(indexToDelete, 1);
+        }
+      });
       response.end('success');
     }
   }
