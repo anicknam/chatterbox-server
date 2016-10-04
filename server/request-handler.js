@@ -14,9 +14,20 @@ this file and include it in basic-server.js so that it actually works.
 var fs = require('fs');
 var path = require('path');
 
-var storage = {
-  results: []
-};
+
+var storage;
+var pathToMessages = path.join(__dirname, './messages.json');
+fs.readFile(pathToMessages, function(err, data) {
+  // console.log('data',data.toString());
+  if (err) {
+   // TODO FIXME
+  } else {
+    storage = JSON.parse(data.toString());
+  }
+});
+
+
+
 
 var defaultCorsHeaders = {
   'access-control-allow-origin': '*',
@@ -26,6 +37,7 @@ var defaultCorsHeaders = {
 };
 
 var requestHandler = function(request, response) {
+  console.log(storage);
   // Request and Response come from node's http module.
   //
   // They include information about both the incoming request, such as
@@ -40,7 +52,7 @@ var requestHandler = function(request, response) {
   // Adding more logging to your server can be an easy way to get passive
   // debugging help, but you should always be careful about leaving stray
   // console.logs in your code.
-  // console.log('Serving request type ' + request.method + ' for url ' + request.url);
+  console.log('Serving request type ' + request.method + ' for url ' + request.url);
 
   // The outgoing status.
   var statusCode;
@@ -66,8 +78,18 @@ var requestHandler = function(request, response) {
         response.end('error');
       }
 
+      var extensionName = path.extname(pathToRequestedFile);
+      var contentType = 'text/html';
+
+      if (extensionName === '.js') {
+        contentType = 'text/javascript';
+      } else if (extensionName === '.css') {
+        contentType = 'text/css';
+      }
+
+      headers['Content-Type'] = contentType;
+
       statusCode = 200;
-      //headers['Content-Type'] = 'text/html';
       response.writeHead(statusCode, headers);
       response.end(data);
     });
@@ -79,6 +101,7 @@ var requestHandler = function(request, response) {
       response.writeHead(statusCode, headers);
       response.end(JSON.stringify(storage));
     } else if (request.method === 'POST') {
+      console.log('received POST request');
       statusCode = 201;
 
       request.on('data', function (data) {
@@ -87,9 +110,10 @@ var requestHandler = function(request, response) {
         try { 
           // JSON.parse(body.toString());
           var newMessage = JSON.parse(body.toString());
-          newMessage.id = Math.floor(Math.random() * 1e6).toString();
-          storage.results.push(newMessage);
+          newMessage.objectId = Math.floor(Math.random() * 1e6).toString();
           // If so, push it onto the storage.results array
+          storage.results.push(newMessage);
+          fs.writeFile(pathToMessages, JSON.stringify(storage));
         } catch (e) {
         }
 
@@ -100,7 +124,7 @@ var requestHandler = function(request, response) {
       });
 
       // TODO: proper content-type
-      headers['Content-Type'] = 'application/json';
+      headers['Content-Type'] = 'text/plain';
       response.writeHead(statusCode, headers);
       response.end('success');
     } else if (request.method === 'DELETE') {
