@@ -11,7 +11,8 @@ this file and include it in basic-server.js so that it actually works.
 *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html.
 
 **************************************************************/
-var crypto = require('crypto');
+var fs = require('fs');
+var path = require('path');
 
 var storage = {
   results: []
@@ -48,9 +49,28 @@ var requestHandler = function(request, response) {
   var headers = defaultCorsHeaders;
 
   if (!request.url.includes('/classes/messages')) {
-    statusCode = 404;
-    response.writeHead(statusCode, headers);
-    response.end();
+    var pathToRequestedFile = path.join(__dirname, '../2016-09-chatterbox-client/client');
+
+    if (request.url === '/' || request.url.includes('?')) {
+     // we will give them index.html
+      pathToRequestedFile += '/index.html';
+    } else {
+      // test if the file exists, if not send 404, else send the file
+      pathToRequestedFile += request.url;
+    }
+
+    fs.readFile(pathToRequestedFile, function(err, data) {
+      if (err) {
+        statusCode = 404;
+        response.writeHead(statusCode, headers);
+        response.end('error');
+      }
+
+      statusCode = 200;
+      //headers['Content-Type'] = 'text/html';
+      response.writeHead(statusCode, headers);
+      response.end(data);
+    });
   } else { 
     if (request.method === 'GET' || request.method === 'OPTIONS') {
       statusCode = 200;
