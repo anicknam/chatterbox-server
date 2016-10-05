@@ -1,4 +1,4 @@
-/* Import node's http module: */
+/* Import node's http module: 
 var http = require('http');
 var handleRequest = require('./request-handler');
 
@@ -21,7 +21,7 @@ var ip = '127.0.0.1';
 // The function we pass to http.createServer will be used to handle all
 // incoming requests.
 //
-// After creating the server, we will tell it to listen on the given port and IP. */
+// After creating the server, we will tell it to listen on the given port and IP.
 var server = http.createServer(handleRequest);
 console.log('Listening on http://' + ip + ':' + port);
 server.listen(port, ip);
@@ -38,4 +38,127 @@ server.listen(port, ip);
 // server.listen() will continue running as long as there is the
 // possibility of serving more requests. To stop your server, hit
 // Ctrl-C on the command line.
+
+*/
+
+const path = require('path');
+const fs = require('fs');
+const express = require('express');
+const app = express();
+const bodyParser = require('body-parser');
+
+app.use(bodyParser.json({ strict: false }));
+
+var defaultCorsHeaders = {
+  'access-control-allow-origin': '*',
+  'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'access-control-allow-headers': 'content-type, accept',
+  'access-control-max-age': 10 // Seconds.
+};
+
+
+var storage;
+var pathToMessages = path.join(__dirname, './messages.json');
+// create new read stream
+messagesData = '';
+var messageReadStream = fs.createReadStream(pathToMessages);
+// on new data, append the data
+messageReadStream.on('data', function (chunk) {
+  messagesData += chunk;
+});
+// on end, process the data
+messageReadStream.on('end', function (chunk) {
+  storage = JSON.parse(messagesData.toString());
+});
+
+
+app.get('/classes/messages', function (req, res) {
+  res.json(storage);
+});
+
+app.post('/classes/messages', function (req, res) {
+  console.log('req.body for post request', req.body);
+  try { 
+    var newMessage = req.body;
+    newMessage.objectId = Math.floor(Math.random() * 1e6).toString();
+
+    // If so, push it onto the storage.results array
+    storage.results.push(newMessage);
+
+    // store the updated `storage` in ./messages.json
+    var messageWriteStream = fs.createWriteStream(pathToMessages);
+    messageWriteStream.write(JSON.stringify(storage));
+    messageWriteStream.end();
+
+    // All went well. Inform the requester.
+    res.sendStatus(201);
+  } catch (e) {
+    res.sendStatus(500);
+  }
+});
+
+
+app.delete('/classes/messages', function(req, res) {
+  var indexToDelete;
+  // console.log('beforeDEL', storage);
+
+  console.log('req.body in delete request', req.body);
+  
+  storage.results.forEach(function(item, index) {
+    if (item.objectId === req.body) {
+      indexToDelete = index;
+    }
+  });
+  if (typeof indexToDelete === 'number') {
+    storage.results.splice(indexToDelete, 1);
+  }
+  // console.log('afterDEL', storage);
+
+  // store the updated `storage` in ./messages.json
+  var messageWriteStream = fs.createWriteStream(pathToMessages);
+  messageWriteStream.write(JSON.stringify(storage));
+  messageWriteStream.end();
+  
+  res.send('success');
+
+});
+
+app.listen(3000, function () {
+  console.log('Example app listening on port 3000!');
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

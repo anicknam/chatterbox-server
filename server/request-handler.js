@@ -50,7 +50,7 @@ var defaultCorsHeaders = {
 };
 
 var requestHandler = function(request, response) {
-  console.log(storage);
+  // console.log(storage);
   // Request and Response come from node's http module.
   //
   // They include information about both the incoming request, such as
@@ -65,7 +65,7 @@ var requestHandler = function(request, response) {
   // Adding more logging to your server can be an easy way to get passive
   // debugging help, but you should always be careful about leaving stray
   // console.logs in your code.
-  console.log('Serving request type ' + request.method + ' for url ' + request.url);
+  // console.log('Serving request type ' + request.method + ' for url ' + request.url);
 
   // The outgoing status.
   var statusCode;

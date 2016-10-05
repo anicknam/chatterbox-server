@@ -34,11 +34,13 @@ describe('server', function() {
   });
 
   it('should accept POST requests to /classes/messages', function(done) {
-    var requestParams = {method: 'POST',
+    var requestParams = {
+      method: 'POST',
       uri: 'http://127.0.0.1:3000/classes/messages',
       json: {
         username: 'Jono',
-        message: 'Do my bidding!'}
+        message: 'Do my bidding!'
+      }
     };
 
     request(requestParams, function(error, response, body) {
@@ -87,9 +89,10 @@ describe('server', function() {
       // GET
       request('http://127.0.0.1:3000/classes/messages', function(error, response, body) {
         var messages = JSON.parse(body).results;
-        var messageId = messages[0].id;
+        var messageId = messages[0].objectId;
 
-        var deleteParams = {method: 'DELETE',
+        var deleteParams = {
+          method: 'DELETE',
           uri: 'http://127.0.0.1:3000/classes/messages',
           json: messageId
         };
@@ -101,7 +104,7 @@ describe('server', function() {
           request('http://127.0.0.1:3000/classes/messages', function(error, response, body) {
             var messages = JSON.parse(body).results;
             for (var i = 0; i < messages.length; i++) {
-              expect(messages[i].id).to.not.equal(messageId);
+              expect(messages[i].objectId).to.not.equal(messageId);
             }
             done();
           });
@@ -126,7 +129,8 @@ describe('server', function() {
         var messages = JSON.parse(body).results;
         var messageCount = messages.length;
 
-        var deleteParams = {method: 'DELETE',
+        var deleteParams = {
+          method: 'DELETE',
           uri: 'http://127.0.0.1:3000/classes/messages',
           json: 'a' // An id that isn't in use
         };
